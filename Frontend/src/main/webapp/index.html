@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NBAScore</title>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NBAScore</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:  #1d428a;
+  --red:   #972034;
+  --black: #0d0d0d;
+  --surf:  #111111;
+  --surf2: #1a1a1a;
+  --white: #f5f5f0;
+  --muted: rgba(255,255,255,0.45);
+  --gap:   6px;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Lato', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  overflow-x: hidden;
+}
+
+/* ── PAGE SYSTEM ── */
+.page { display: none; min-height: 100vh; flex-direction: column; }
+.page.active { display: flex; }
+
+/* ── NAV ── */
+nav {
+  z-index: 10; position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28px 48px; flex-shrink: 0;
+}
+.inner-nav { background: var(--surf); border-bottom: 1px solid #1e1e1e; }
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem; letter-spacing: 3px;
+  color: #ffffff; text-decoration: none; cursor: pointer;
+}
+.logo strong { color: var(--muted); }
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a {
+  color: var(--muted); text-decoration: none; cursor: pointer;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-links a:hover, .nav-links a.active { color: #fff; }
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  cursor: pointer; background: none; border: none; padding: 4px;
+}
+.hamburger span { display: block; width: 24px; height: 2px; background: #fff; }
+
+/* ── HERO ── */
+.hero {
+  position: relative; background: var(--blue);
+  height: 45vh; min-height: 320px; display: flex; flex-direction: column;
+}
+.hero-img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: block;
+}
+.hero-headline {
+  position: absolute; bottom: 32px; left: 48px; right: 48px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.2rem, 4.5vw, 4.2rem);
+  letter-spacing: 3px; line-height: 1;
+  color: rgb(255, 255, 255); pointer-events: none;
+  animation: fadeUp 0.9s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* ── TILE GRID ── */
+.tile-section { background: var(--black); padding: var(--gap); flex: 1; }
+.tile-row { display: flex; gap: var(--gap); margin-bottom: var(--gap); }
+.tile-row:last-child { margin-bottom: 0; }
+
+.tile {
+  position: relative; overflow: hidden; cursor: pointer;
+  flex-shrink: 0; min-height: 280px; background: var(--surf);
+  animation: scaleIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+.tile:nth-child(1) { animation-delay: 0.08s; }
+.tile:nth-child(2) { animation-delay: 0.18s; }
+
+.tile-60   { flex: 0 0 calc(60% - var(--gap) / 2); }
+.tile-40   { flex: 0 0 calc(40% - var(--gap) / 2); }
+.tile-full { flex: 1; }
+
+.tile-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  transition: transform 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+.tile:hover .tile-bg { transform: scale(1.06); }
+.tile-ovl {
+  position: absolute; inset: 0;
+  background: linear-gradient(150deg, rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.1) 100%);
+  transition: opacity 0.3s;
+}
+.tile:hover .tile-ovl { opacity: 0.55; }
+
+.tile-blue .tile-bg { background: var(--blue); }
+.tile-red  .tile-bg { background: var(--red); }
+.tile-dark .tile-bg { background: #161616; }
+
+.tile-label {
+  position: absolute; bottom: 28px; left: 28px; z-index: 2;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.5rem, 2.8vw, 2.3rem);
+  letter-spacing: 2px; line-height: 1.1;
+  color: #fff; text-decoration: none; display: block; pointer-events: none;
+}
+.tile-label::after {
+  content: ''; display: block; width: 0; height: 2px;
+  background: rgba(255,255,255,0.5);
+  transition: width 0.35s cubic-bezier(0.22,1,0.36,1);
+  margin-top: 6px;
+}
+.tile:hover .tile-label::after { width: 32px; }
+
+/* ── INNER PAGE ── */
+.inner-hero { padding: 64px 48px 52px; flex-shrink: 0; }
+.inner-hero-blue  { background: var(--blue); }
+.inner-hero-red   { background: var(--red); }
+.inner-hero-dark  { background: #0d1220; }
+
+.inner-hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+  letter-spacing: 3px; line-height: 1;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+.inner-hero-sub {
+  margin-top: 10px; font-size: 0.85rem; letter-spacing: 1px; color: var(--muted);
+  animation: fadeUp 0.7s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+}
+.divider-accent {
+  width: 40px; height: 3px; margin: 14px 0 0;
+  animation: fadeUp 0.7s 0.15s both;
+}
+
+.inner-content {
+  flex: 1; padding: 48px; max-width: 880px; width: 100%; margin: 0 auto;
+  animation: fadeUp 0.6s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* ── FORM ── */
+.field-group { margin-bottom: 20px; }
+.field-label {
+  display: block; font-size: 0.72rem; letter-spacing: 2px;
+  text-transform: uppercase; font-weight: 700; color: var(--muted); margin-bottom: 8px;
+}
+.field-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.field-row .field-group { flex: 1; min-width: 150px; margin-bottom: 0; }
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+select {
+  display: block; width: 100%;
+  background: var(--surf2); border: 1px solid #252525;
+  color: var(--white); font-family: 'Lato', sans-serif; font-size: 0.9rem;
+  padding: 13px 16px; outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none; appearance: none;
+}
+input:focus, select:focus { border-color: var(--blue); }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+  padding-right: 40px; cursor: pointer;
+}
+
+.btn {
+  display: inline-block; font-family: 'Lato', sans-serif;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  padding: 14px 32px; border: none; cursor: pointer;
+  transition: background 0.2s, transform 0.1s; white-space: nowrap;
+}
+.btn:active { transform: scale(0.98); }
+.btn-blue  { background: var(--blue); color: #fff; }
+.btn-blue:hover  { background: #183778; }
+.btn-red   { background: var(--red);  color: #fff; }
+.btn-red:hover   { background: #a30d24; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid #2a2a2a; }
+.btn-ghost:hover { border-color: #555; color: #fff; }
+.btn-full  { width: 100%; text-align: center; display: block; }
+
+/* ── RESULTS ── */
+.results-wrap { margin-top: 36px; }
+.results-label {
+  font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--muted); font-weight: 700; margin-bottom: 16px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead tr { border-bottom: 2px solid var(--blue); }
+th {
+  padding: 10px 14px; text-align: left;
+  font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); font-weight: 700;
+}
+td { padding: 13px 14px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; }
+tbody tr:hover td { background: var(--surf2); }
+
+.badge {
+  display: inline-block; padding: 3px 10px;
+  font-size: 0.67rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+}
+.badge-final    { background: rgba(26,122,60,0.2);    color: #6fdf9a; border: 1px solid rgba(111,223,154,0.2); }
+.badge-live     { background: rgba(200,16,46,0.2);    color: #ff6680; border: 1px solid rgba(255,102,128,0.2); }
+.badge-upcoming { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid #2a2a2a; }
+.score-cell { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 1px; }
+
+/* ── STAT CARDS ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--gap); margin-top: 24px; }
+.stat-card { background: var(--surf2); padding: 24px 16px; text-align: center; }
+.stat-card .val {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem;
+  letter-spacing: 1px; color: #fff; line-height: 1;
+}
+.stat-card .lbl {
+  font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-top: 8px;
+}
+
+/* ── MESSAGES ── */
+.state-msg { padding: 40px 0; text-align: center; font-size: 0.85rem; color: var(--muted); letter-spacing: 1px; }
+.err-msg {
+  padding: 14px 18px; background: rgba(200,16,46,0.1);
+  border-left: 3px solid var(--red); color: #ff8899;
+  font-size: 0.85rem; margin-top: 16px;
+}
+.ok-msg {
+  padding: 14px 18px; background: rgba(29,66,138,0.12);
+  border-left: 3px solid var(--blue); color: #90b4f5;
+  font-size: 0.85rem; margin-top: 16px;
+}
+
+/* ── AUTH TABS ── */
+.tab-bar { display: flex; border-bottom: 1px solid #222; margin-bottom: 32px; }
+.tab {
+  padding: 12px 24px; cursor: pointer;
+  font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+  color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.tab.active { color: #fff; border-bottom-color: var(--blue); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── FOOTER ── */
+footer {
+  background: #080808; border-top: 1px solid #1a1a1a;
+  padding: 28px 48px; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 16px; flex-shrink: 0;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+  letter-spacing: 3px; color: #fff; cursor: pointer; text-decoration: none;
+}
+.footer-logo strong { color: rgba(255,255,255,0.28); }
+.footer-links { display: flex; gap: 24px; list-style: none; flex-wrap: wrap; }
+.footer-links a {
+  color: rgba(255,255,255,0.3); text-decoration: none; cursor: pointer;
+  font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: #fff; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 20px 24px; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  .hero-headline { left: 24px; bottom: 20px; }
+  .tile { min-height: 200px; }
+  .tile-row { flex-direction: column; }
+  .tile-60, .tile-40, .tile-full { flex: none; width: 100%; }
+  .inner-hero { padding: 40px 24px 36px; }
+  .inner-content { padding: 32px 24px; }
+  .stat-grid { grid-template-columns: repeat(2,1fr); }
+  .field-row { flex-direction: column; }
+  footer { padding: 24px; }
+  .footer-links { gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     HOME
+══════════════════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <section class="hero">
+    <img class="hero-img" src="images/nba_banner.jpg" alt="nba_banner"/>
+    <nav>
+      <a class="logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+      <ul class="nav-links">
+        <li><a onclick="go('home')" class="active">Home</a></li>
+        <li><a onclick="go('search')">Search Games</a></li>
+        <li><a onclick="go('stats')">Player Stats</a></li>
+        <li><a onclick="go('auth')" id="hn-auth">Login</a></li>
+      </ul>
+      <button class="hamburger" onclick="mobileNav('home')">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+    <div class="hero-headline">Every Play. Every Stat. All in One Place.</div>
+  </section>
+
+  <div class="tile-section">
+    <!-- Row 1 -->
+    <div class="tile-row">
+      <div class="tile tile-60 tile-blue" onclick="go('search')">
+        <div class="tile-bg"></div>
+        <div class="tile-ovl"></div>
+        <span class="tile-label">Search<br/>NBA Games.</span>
+      </div>
+      <div class="tile tile-40 tile-dark" onclick="go('stats')">
+        <div class="tile-bg"></div>
+        <div class="tile-ovl"></div>
+        <span class="tile-label">Player<br/>Stats.</span>
+      </div>
+    </div>
+    <!-- Row 2 -->
+    <div class="tile-row">
+      <div class="tile tile-full tile-red" onclick="go('auth')">
+        <div class="tile-bg"></div>
+        <div class="tile-ovl"></div>
+        <span class="tile-label" id="home-tile-auth">Login /<br/>Register.</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a class="footer-logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="footer-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')">Search Games</a></li>
+      <li><a onclick="go('stats')">Player Stats</a></li>
+      <li><a onclick="go('auth')">Login</a></li>
+    </ul>
+  </footer>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     SEARCH GAMES
+══════════════════════════════════════ -->
+<div class="page" id="page-search">
+
+  <nav class="inner-nav">
+    <a class="logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="nav-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')" class="active">Search Games</a></li>
+      <li><a onclick="go('stats')">Player Stats</a></li>
+      <li><a onclick="go('auth')" id="sn-auth">Login</a></li>
+    </ul>
+    <button class="hamburger" onclick="mobileNav('search')">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="inner-hero inner-hero-blue">
+    <div class="inner-hero-title">Search NBA Games.</div>
+    <div class="divider-accent" style="background:var(--red);"></div>
+    <div class="inner-hero-sub">Find games by date, team name, or player name. No login required.</div>
+  </div>
+
+  <div class="inner-content">
+
+    <div class="field-row">
+    <div class="field-group" style="max-width:180px;">
+        <label class="field-label">Search By</label>
+        <select id="sg-type">
+        <option value="date">Date</option>
+        <option value="team">Team Name</option>
+        <option value="player">Player Name</option>
+        </select>
+    </div>
+    <div class="field-group">
+        <label class="field-label">Value</label>
+        <input type="search" id="sg-value" placeholder="e.g. 2026-01-16 or Nets or Giannis"
+            onkeydown="if(event.key==='Enter') searchGames()"/>
+    </div>
+    <div class="field-group" style="flex:0;">
+        <button class="btn btn-blue" onclick="searchGames()">Search</button>
+    </div>
+    </div>
+
+    <div id="sg-msg"></div>
+
+    <div class="results-wrap" id="sg-results" style="display:none;">
+      <div class="results-label" id="sg-count"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Game ID</th>
+            <th>Date</th>
+            <th>Home Team</th>
+            <th>Score</th>
+            <th>Away Team</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="sg-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>
+    <a class="footer-logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="footer-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')">Search Games</a></li>
+      <li><a onclick="go('stats')">Player Stats</a></li>
+      <li><a onclick="go('auth')">Login</a></li>
+    </ul>
+  </footer>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PLAYER STATS
+══════════════════════════════════════ -->
+<div class="page" id="page-stats">
+
+  <nav class="inner-nav">
+    <a class="logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="nav-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')">Search Games</a></li>
+      <li><a onclick="go('stats')" class="active">Player Stats</a></li>
+      <li><a onclick="go('auth')" id="pn-auth">Login</a></li>
+    </ul>
+    <button class="hamburger" onclick="mobileNav('stats')">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="inner-hero inner-hero-red">
+    <div class="inner-hero-title">Player Stats.</div>
+    <div class="divider-accent" style="background:rgba(255,255,255,0.35);"></div>
+    <div class="inner-hero-sub">Look up stats by home team, away team, or player name. Login required.</div>
+  </div>
+
+  <div class="inner-content">
+
+    <!-- Gate shown when logged out -->
+    <div id="stats-gate" style="display:none;">
+      <div class="ok-msg">
+        You need to be logged in to view player stats.
+        <a onclick="go('auth')" style="color:#ffd700; cursor:pointer; margin-left:6px; font-weight:700;">Log in →</a>
+      </div>
+    </div>
+
+    <!-- Form shown when logged in -->
+    <div id="stats-form">
+    <div class="field-row">
+        <div class="field-group">
+        <label class="field-label">Home Team <span style="font-weight:300;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="ps-homeTeam" placeholder="e.g. Warriors"/>
+        </div>
+        <div class="field-group">
+        <label class="field-label">Away Team <span style="font-weight:300;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="ps-awayTeam" placeholder="e.g. Heat"/>
+        </div>
+        <div class="field-group">
+        <label class="field-label">Player Name <span style="font-weight:300;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="ps-name" placeholder="e.g. Curry"
+               onkeydown="if(event.key==='Enter') lookupStats()"/>
+        </div>
+        <div class="field-group" style="flex:0;">
+        <button class="btn btn-red" onclick="lookupStats()">Lookup</button>
+        </div>
+    </div>
+
+    <div id="ps-msg"></div>
+
+    <div class="results-wrap" id="ps-results" style="display:none;">
+        <div class="results-label" id="ps-count"></div>
+        <table>
+        <thead>
+            <tr>
+            <th>Player</th>
+            <th>Points</th>
+            <th>Assists</th>
+            <th>Rebounds</th>
+            <th>Minutes</th>
+            </tr>
+        </thead>
+        <tbody id="ps-tbody"></tbody>
+        </table>
+    </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <a class="footer-logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="footer-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')">Search Games</a></li>
+      <li><a onclick="go('stats')">Player Stats</a></li>
+      <li><a onclick="go('auth')">Login</a></li>
+    </ul>
+  </footer>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     LOGIN / REGISTER
+══════════════════════════════════════ -->
+<div class="page" id="page-auth">
+
+  <nav class="inner-nav">
+    <a class="logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="nav-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')">Search Games</a></li>
+      <li><a onclick="go('stats')">Player Stats</a></li>
+      <li><a onclick="go('auth')" class="active" id="an-auth">Login</a></li>
+    </ul>
+    <button class="hamburger" onclick="mobileNav('auth')">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="inner-hero inner-hero-dark">
+    <div class="inner-hero-title" id="auth-hero-title">Login.</div>
+    <div class="divider-accent" style="background:var(--red);"></div>
+    <div class="inner-hero-sub" id="auth-hero-sub">Access player stats and personalised features.</div>
+  </div>
+
+  <div class="inner-content" style="max-width:560px;">
+
+    <!-- Logged-in state -->
+    <div id="auth-loggedin" style="display:none;">
+      <div class="ok-msg" id="auth-welcome"></div>
+      <br/>
+      <button class="btn btn-ghost" onclick="doLogout()">Logout</button>
+    </div>
+
+    <!-- Tabs -->
+    <div id="auth-tabs">
+      <div class="tab-bar">
+        <div class="tab active" id="tab-login"    onclick="switchTab('login')">Login</div>
+        <div class="tab"        id="tab-register" onclick="switchTab('register')">Register</div>
+      </div>
+
+      <!-- Login -->
+      <div class="tab-panel active" id="panel-login">
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input type="text" id="l-user" placeholder="Enter your username"
+                 onkeydown="if(event.key==='Enter') doLogin()"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input type="password" id="l-pass" placeholder="Enter your password"
+                 onkeydown="if(event.key==='Enter') doLogin()"/>
+        </div>
+        <div id="l-msg"></div>
+        <br/>
+        <button class="btn btn-blue btn-full" onclick="doLogin()">Login</button>
+      </div>
+
+      <!-- Register -->
+      <div class="tab-panel" id="panel-register">
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input type="text" id="r-user" placeholder="Choose a username"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <input type="email" id="r-email" placeholder="Enter your email address"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input type="password" id="r-pass" placeholder="Choose a password"/>
+        </div>
+        <div id="r-msg"></div>
+        <br/>
+        <button class="btn btn-blue btn-full" onclick="doRegister()">Register</button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <a class="footer-logo" onclick="go('home')">NBA<strong>SCORE</strong></a>
+    <ul class="footer-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('search')">Search Games</a></li>
+      <li><a onclick="go('stats')">Player Stats</a></li>
+      <li><a onclick="go('auth')">Login</a></li>
+    </ul>
+  </footer>
+</div>
+
+
+<script>
+/* ─── Service URLs ─── */
+const SEARCH_URL = 'http://localhost:8080/SearchGames/api/games';
+const STATS_URL  = 'http://localhost:8080/PlayerStats/api/stats';
+const AUTH_URL   = 'http://localhost:8080/Frontend/api/auth';
+
+/* ─── State ─── */
+let jwt      = localStorage.getItem('nba_jwt')      || null;
+let username = localStorage.getItem('nba_username') || null;
+
+/* ─── Routing ─── */
+function go(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  window.scrollTo(0, 0);
+  if (page === 'stats') refreshStatsGate();
+  if (page === 'auth')  refreshAuthPage();
+  updateNavLabels();
+}
+
+function updateNavLabels() {
+  const label = (jwt && username) ? username : 'Login';
+  ['hn-auth','sn-auth','pn-auth','an-auth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
+  const homeTile = document.getElementById('home-tile-auth');
+  if (homeTile) homeTile.innerHTML = jwt ? `${username}.<br/>Account.` : 'Login /<br/>Register.';
+}
+
+/* ─── Mobile nav ─── */
+function mobileNav(page) {
+  const nav = document.querySelector('#page-' + page + ' .nav-links');
+  if (!nav) return;
+  const open = nav.style.display === 'flex';
+  nav.style.cssText = open ? '' :
+    'display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;z-index:50;background:#111;padding:20px 24px;gap:16px;border-bottom:1px solid #222;';
+}
+
+/* ─── SEARCH GAMES ─── */
+async function searchGames() {
+  const type  = document.getElementById('sg-type').value;
+  const value = document.getElementById('sg-value').value.trim();
+  setMsg('sg-msg', '');
+  document.getElementById('sg-results').style.display = 'none';
+
+  if (!value) { setMsg('sg-msg', 'Please enter a search value.', 'err'); return; }
+  setMsg('sg-msg', 'Searching…', 'ok');
+
+  try {
+    const headers = jwt ? { Authorization: 'Bearer ' + jwt } : {};
+    const res  = await fetch(`${SEARCH_URL}/search?type=${type}&value=${encodeURIComponent(value)}`, { headers });
+    const data = await res.json();
+    setMsg('sg-msg', '');
+    if (!res.ok) { setMsg('sg-msg', data.error || 'Search failed.', 'err'); return; }
+    renderGames(data);
+  } catch(e) {
+    setMsg('sg-msg', 'Service offline — showing demo data.', 'err');
+    renderGames(mockGames());
+  }
+}
+
+function renderGames(data) {
+  const games = data.games || [];
+  document.getElementById('sg-count').textContent =
+    `${games.length} game${games.length !== 1 ? 's' : ''} found`;
+
+  document.getElementById('sg-tbody').innerHTML = games.length
+    ? games.map(g => {
+        const sc = g.status === 'Final' ? 'badge-final'
+                 : g.status === 'Live'  ? 'badge-live'
+                 : 'badge-upcoming';
+        return `<tr>
+          <td>${g.gameId}</td>
+          <td>${g.gameDate}</td>
+          <td>${g.homeTeamName || g.homeTeamId}</td>
+          <td class="score-cell">${g.homeScore} – ${g.awayScore}</td>
+          <td>${g.awayTeamName || g.awayTeamId}</td>
+          <td><span class="badge ${sc}">${g.status}</span></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="state-msg">No games found.</td></tr>';
+
+  document.getElementById('sg-results').style.display = 'block';
+}
+
+/* ─── PLAYER STATS ─── */
+function refreshStatsGate() {
+  document.getElementById('stats-gate').style.display = jwt ? 'none'  : 'block';
+  document.getElementById('stats-form').style.display = jwt ? 'block' : 'none';
+}
+
+async function lookupStats() {
+  if (!jwt) { refreshStatsGate(); return; }
+  const homeTeam = document.getElementById('ps-homeTeam').value.trim();
+  const awayTeam = document.getElementById('ps-awayTeam').value.trim();
+  const player   = document.getElementById('ps-name').value.trim();
+  setMsg('ps-msg', '');
+  document.getElementById('ps-results').style.display = 'none';
+
+  if (!homeTeam && !awayTeam && !player) {
+    setMsg('ps-msg', 'Provide at least one field to search.', 'err'); return;
+  }
+  setMsg('ps-msg', 'Loading stats…', 'ok');
+
+  let url = STATS_URL + '?';
+  if (homeTeam) url += 'homeTeam=' + encodeURIComponent(homeTeam) + '&';
+  if (awayTeam) url += 'awayTeam=' + encodeURIComponent(awayTeam) + '&';
+  if (player)   url += 'player='   + encodeURIComponent(player)   + '&';
+
+  try {
+    const res  = await fetch(url, { headers: { Authorization: 'Bearer ' + jwt } });
+    const data = await res.json();
+    setMsg('ps-msg', '');
+    if (!res.ok) { setMsg('ps-msg', data.error || 'Lookup failed.', 'err'); return; }
+    renderStats(data);
+  } catch(e) {
+    setMsg('ps-msg', 'Service offline — showing demo data.', 'err');
+    renderStats(mockStats());
+  }
+}
+
+
+
+function renderStats(data) {
+  const rows = data.stats || [];
+  document.getElementById('ps-count').textContent =
+    `${rows.length} player${rows.length !== 1 ? 's' : ''}`;
+  document.getElementById('ps-tbody').innerHTML = rows.length
+    ? rows.map(s => `<tr>
+        <td><strong>${s.playerName}</strong></td>
+        <td>${s.points}</td>
+        <td>${s.assists}</td>
+        <td>${s.rebounds}</td>
+        <td>${s.minutesPlayed}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="state-msg">No stats found.</td></tr>';
+  document.getElementById('ps-results').style.display = 'block';
+}
+
+/* ─── AUTH ─── */
+function refreshAuthPage() {
+  if (jwt) {
+    document.getElementById('auth-tabs').style.display     = 'none';
+    document.getElementById('auth-loggedin').style.display = 'block';
+    document.getElementById('auth-welcome').textContent    = `You're logged in as ${username}.`;
+    document.getElementById('auth-hero-title').textContent = 'Welcome Back.';
+    document.getElementById('auth-hero-sub').textContent   = 'You have full access to player stats.';
+  } else {
+    document.getElementById('auth-tabs').style.display     = 'block';
+    document.getElementById('auth-loggedin').style.display = 'none';
+    document.getElementById('auth-hero-title').textContent = 'Login.';
+    document.getElementById('auth-hero-sub').textContent   = 'Access player stats and personalised features.';
+  }
+}
+
+function switchTab(tab) {
+  ['login','register'].forEach(t => {
+    document.getElementById('tab-'   + t).classList.toggle('active', t === tab);
+    document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+  });
+}
+
+async function doLogin() {
+  const user = document.getElementById('l-user').value.trim();
+  const pass = document.getElementById('l-pass').value;
+  setMsg('l-msg', '');
+  if (!user || !pass) { setMsg('l-msg', 'Both fields are required.', 'err'); return; }
+  setMsg('l-msg', 'Logging in…', 'ok');
+
+  try {
+    const body = new URLSearchParams({ username: user, password: pass });
+    const res  = await fetch(`${AUTH_URL}/login`, { method: 'POST', body });
+    const data = await res.json();
+    if (!res.ok) { setMsg('l-msg', data.error || 'Login failed.', 'err'); return; }
+    storeSession(data.token, data.username);
+    setMsg('l-msg', `Welcome, ${data.username}!`, 'ok');
+    setTimeout(() => go('home'), 900);
+  } catch(e) {
+    /* demo fallback */
+    storeSession('demo_token', user);
+    setMsg('l-msg', `Logged in as ${user} (demo mode).`, 'ok');
+    setTimeout(() => go('home'), 900);
+  }
+}
+
+async function doRegister() {
+  const user  = document.getElementById('r-user').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pass  = document.getElementById('r-pass').value;
+  setMsg('r-msg', '');
+  if (!user || !email || !pass) { setMsg('r-msg', 'All fields are required.', 'err'); return; }
+  setMsg('r-msg', 'Registering…', 'ok');
+
+  try {
+    const body = new URLSearchParams({ username: user, email, password: pass });
+    const res  = await fetch(`${AUTH_URL}/register`, { method: 'POST', body });
+    const data = await res.json();
+    if (!res.ok) { setMsg('r-msg', data.error || 'Registration failed.', 'err'); return; }
+    setMsg('r-msg', 'Registered successfully! You can now log in.', 'ok');
+    setTimeout(() => switchTab('login'), 1200);
+  } catch(e) {
+    setMsg('r-msg', 'Registered (demo mode). You can now log in.', 'ok');
+    setTimeout(() => switchTab('login'), 1200);
+  }
+}
+
+function doLogout() {
+  jwt = null; username = null;
+  localStorage.removeItem('nba_jwt');
+  localStorage.removeItem('nba_username');
+  refreshAuthPage();
+  updateNavLabels();
+}
+
+function storeSession(token, user) {
+  jwt = token; username = user;
+  localStorage.setItem('nba_jwt', jwt);
+  localStorage.setItem('nba_username', username);
+  updateNavLabels();
+}
+
+/* ─── Helpers ─── */
+function setMsg(id, text, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = text
+    ? `<div class="${type === 'err' ? 'err-msg' : 'ok-msg'}">${text}</div>`
+    : '';
+}
+
+/* ─── Mock data (when services are offline) ─── */
+function mockGames() {
+  return { games: [
+    { gameId:101, gameDate:'2025-11-29', homeTeamName:'Bucks',    awayTeamName:'Nets',    homeScore:116, awayScore:99,  status:'Final' },
+    { gameId:102, gameDate:'2026-01-16', homeTeamName:'Nets',     awayTeamName:'Bulls',   homeScore:112, awayScore:109, status:'Final' },
+    { gameId:103, gameDate:'2026-01-19', homeTeamName:'Warriors', awayTeamName:'Heat',    homeScore:135, awayScore:112, status:'Final' },
+    { gameId:104, gameDate:'2026-01-23', homeTeamName:'Nets',     awayTeamName:'Celtics', homeScore:126, awayScore:130, status:'Final' },
+  ]};
+}
+
+function mockStats() {
+  return { stats: [
+    { playerName:'Jaylen Brown',    points:27, assists:12, rebounds:10, minutesPlayed:46 },
+    { playerName:'Payton Pritchard',points:32, assists:4,  rebounds:4,  minutesPlayed:40 },
+    { playerName:'Michael Porter Jr.',points:30, assists:4, rebounds:8, minutesPlayed:42 },
+    { playerName:'Cam Thomas',      points:21, assists:2,  rebounds:3,  minutesPlayed:37 },
+    { playerName:'Nic Claxton',     points:18, assists:4,  rebounds:9,  minutesPlayed:39 },
+  ]};
+}
+
+/* ─── Init ─── */
+updateNavLabels();
+refreshStatsGate();
+</script>
+</body>
+</html>

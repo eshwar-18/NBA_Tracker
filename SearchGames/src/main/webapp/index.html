@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SearchGames Microservice – Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+        input, select { padding: 6px; margin: 4px; width: 200px; }
+        button { padding: 8px 16px; background: #1d428a; color: #fff; border: none; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 12px; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h2>SearchGames Microservice – Test Page</h2>
+    <p>Search type:
+        <select id="type">
+            <option value="date">Date</option>
+            <option value="team">Team ID</option>
+            <option value="player">Player ID</option>
+        </select>
+    </p>
+    <p>Value: <input id="value" placeholder="e.g. 2024-01-15 or 1"/></p>
+    <p>JWT Token (optional): <input id="token" placeholder="Paste token here"/></p>
+    <button onclick="search()">Search</button>
+    <h3>Response:</h3>
+    <pre id="output">—</pre>
+
+    <script>
+        async function search() {
+            const type  = document.getElementById('type').value;
+            const value = document.getElementById('value').value;
+            const token = document.getElementById('token').value;
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            try {
+                const res  = await fetch(`api/games/search?type=${type}&value=${encodeURIComponent(value)}`, { headers });
+                const data = await res.json();
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            } catch (e) {
+                document.getElementById('output').textContent = 'Error: ' + e;
+            }
+        }
+    </script>
+</body>
+</html>

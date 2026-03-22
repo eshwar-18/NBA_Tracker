@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PlayerStats Microservice – Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+        input { padding: 6px; margin: 4px; width: 220px; }
+        button { padding: 8px 16px; background: #c8102e; color: #fff; border: none; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 12px; border-radius: 4px; white-space: pre-wrap; }
+        label { display: inline-block; width: 120px; }
+    </style>
+</head>
+<body>
+    <h2>PlayerStats Microservice – Test Page</h2>
+    <p><label>Game ID:</label>   <input id="gameId"   placeholder="e.g. 1 (optional)"/></p>
+    <p><label>Player ID:</label> <input id="playerId" placeholder="e.g. 5 (optional)"/></p>
+    <p><label>Player Name:</label><input id="player"  placeholder="e.g. LeBron (optional)"/></p>
+    <p><label>JWT Token:</label> <input id="token"    placeholder="Required – paste token here"/></p>
+    <button onclick="lookup()">Lookup</button>
+    <h3>Response:</h3>
+    <pre id="output">—</pre>
+
+    <script>
+        async function lookup() {
+            const gameId   = document.getElementById('gameId').value.trim();
+            const playerId = document.getElementById('playerId').value.trim();
+            const player   = document.getElementById('player').value.trim();
+            const token    = document.getElementById('token').value.trim();
+
+            let url = 'api/stats?';
+            if (gameId)   url += `gameId=${gameId}&`;
+            if (playerId) url += `playerId=${playerId}&`;
+            if (player)   url += `player=${encodeURIComponent(player)}&`;
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            try {
+                const res  = await fetch(url, { headers });
+                const data = await res.json();
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            } catch (e) {
+                document.getElementById('output').textContent = 'Error: ' + e;
+            }
+        }
+    </script>
+</body>
+</html>
